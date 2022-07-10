@@ -5,6 +5,14 @@ import 'package:cttw_selection/src/settings/settings_controller.dart';
 import 'package:cttw_selection/src/settings/settings_view.dart';
 import 'package:flutter/material.dart';
 
+/// Représente le gestionnaire des pages de l'application.
+/// Ce widget peut être comparé à un cadre.
+/// Le contour de ce cadre contient :
+/// - la barre d'application supérieure -> [AppBar]
+/// - le rail de navigation à gauche -> [NavigationRail]
+/// - un bouton d'action flottant -> [FloatingActionButton]
+/// 
+/// L'intérieur du cadre est la page sélectionnée depuis le rail de navigation.
 class PageManager extends StatefulWidget {
   final SettingsController settingsController;
 
@@ -28,11 +36,13 @@ class _PageManagerState extends State<PageManager> {
     ];
 
     return Scaffold(
+      // La barre d'application
       appBar: AppBar(
         title: const Text('CTTW Sélection'),
       ),
       body: Row(
         children: [
+          // Le rail de navigation
           NavigationRail(
             destinations: const [
               NavigationRailDestination(
@@ -56,6 +66,7 @@ class _PageManagerState extends State<PageManager> {
             labelType: NavigationRailLabelType.selected,
           ),
           const VerticalDivider(thickness: 1, width: 1),
+          // La page acutellement sélectionnée
           Expanded(
             child: PageTransitionSwitcher(
               transitionBuilder: (child, primaryAnimation, secondaryAnimation) {
@@ -70,6 +81,10 @@ class _PageManagerState extends State<PageManager> {
           ),
         ],
       ),
+      
+      // Le bouton d'action flottant affichant un pop-up afin
+      // d'ajouter un nouveau joueur.
+      // Ce bouton n'est affiché que si la première page est affichée
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
               onPressed: () {

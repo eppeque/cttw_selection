@@ -3,11 +3,13 @@ import 'package:cttw_selection/src/players_listing/add_player_dialog.dart';
 import 'package:cttw_selection/src/players_listing/player.dart';
 import 'package:flutter/material.dart';
 
+/// Représente l'affichage de la liste de force
 class PlayersListingView extends StatelessWidget {
   const PlayersListingView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // La référence de la collection contenant les joueurs
     final ref = FirebaseFirestore.instance.collection('players').withConverter(
           fromFirestore: Player.fromFirestore,
           toFirestore: (Player player, _) => player.toFirestore(),
@@ -35,6 +37,7 @@ class PlayersListingView extends StatelessWidget {
         return ListView(
           children: snapshot.data!.docs.map((p) {
             final player = p.data();
+            // Pour chaque joueur, on affiche une ligne avec les données du joueur
             return ListTile(
               leading: Text(player.id.toString()),
               title: Text(

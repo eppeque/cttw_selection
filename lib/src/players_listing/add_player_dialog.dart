@@ -1,12 +1,18 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cttw_selection/src/players_listing/player.dart';
 import 'package:cttw_selection/src/players_listing/players_database.dart';
 import 'package:flutter/material.dart';
 
+/// Pop-up qui permet d'ajouter ou de modifier un joueur dans la liste de force.
+/// Le widget peut prendre un joueur en paramètres :
+/// - Si un joueur est donné -> le pop-up modifie un joueur
+/// - Si rien n'est donné (et que le joueur est null) -> Le pop-up crée un joueur
 class AddPlayerDialog extends StatefulWidget {
   final Player? player;
 
   const AddPlayerDialog({super.key, this.player});
+
+  /// Détermine si le joueur est donné ou non
+  bool get isPlayerSet => player != null;
 
   @override
   State<AddPlayerDialog> createState() => _AddPlayerDialogState();
@@ -15,22 +21,50 @@ class AddPlayerDialog extends StatefulWidget {
 class _AddPlayerDialogState extends State<AddPlayerDialog> {
   final _formKey = GlobalKey<FormState>();
 
-  var _id = '';
-  var _index = '';
-  var _affiliation = '';
-  var _firstName = '';
-  var _lastName = '';
-  var _ranking = '';
+  // Les données fournies dans le formulaire
+  var _id = ''; // l'ID
+  var _index = ''; // L'index
+  var _affiliation = ''; // Le n° d'affiliation
+  var _firstName = ''; // Le prénom
+  var _lastName = ''; // Le nom
+  var _ranking = ''; // Le classement
+
+  /// Valide ou non les données sous forme d'entier provenant d'un formulaire
+  String? _validateIntValue(String? value, String fieldName) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Veuillez spécifier un $fieldName';
+    }
+
+    try {
+      int.parse(value);
+    } catch (_) {
+      return 'Veuillez spécifier un nombre';
+    }
+
+    return null;
+  }
+
+  String? _validateName(String? value, String fieldName) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Veuillez spécifier un $fieldName';
+    }
+
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.player == null ? 'Nouveau joueur' : 'Modifier le joueur'),
+      // Le titre du pop-up
+      title: Text(widget.isPlayerSet ? 'Nouveau joueur' : 'Modifier le joueur'),
+
+      // Le contenu avec le formulaire
       content: Form(
         key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Le champ ID
             TextFormField(
               decoration: const InputDecoration(
                 label: Text('ID'),
@@ -40,21 +74,12 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
               onChanged: (value) => setState(() => _id = value),
               autofocus: true,
               keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Veuillez spécifier un ID';
-                }
-
-                try {
-                  int.parse(value);
-                } catch (_) {
-                  return 'Veuillez spécifier un nombre';
-                }
-
-                return null;
-              },
+              validator: (value) => _validateIntValue(value, 'ID'),
             ),
+
             const SizedBox(height: 20.0),
+
+            // Le champ index
             TextFormField(
               decoration: const InputDecoration(
                 label: Text('Index'),
@@ -62,23 +87,14 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
               ),
               initialValue: widget.player?.index.toString(),
               onChanged: (value) => setState(() => _index = value),
-              readOnly: widget.player != null,
+              readOnly: widget.isPlayerSet,
               keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Veuillez spécifier un index';
-                }
-
-                try {
-                  int.parse(value);
-                } catch (_) {
-                  return 'Veuillez spécifier un nombre';
-                }
-
-                return null;
-              },
+              validator: (value) => _validateIntValue(value, 'index'),
             ),
+
             const SizedBox(height: 20.0),
+
+            // Le champ n° d'affiliation
             TextFormField(
               decoration: const InputDecoration(
                 label: Text("N°d'affiliation"),
@@ -87,21 +103,12 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
               onChanged: (value) => setState(() => _affiliation = value),
               initialValue: widget.player?.affiliation.toString(),
               keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return "Veuillez spécifier un N°d'affiliation";
-                }
-
-                try {
-                  int.parse(value);
-                } catch (_) {
-                  return 'Veuillez spécifier un nombre';
-                }
-
-                return null;
-              },
+              validator: (value) => _validateIntValue(value, "n° d'affiliation"),
             ),
+
             const SizedBox(height: 20.0),
+
+            // Le champ prénom
             TextFormField(
               decoration: const InputDecoration(
                 label: Text('Prénom'),
@@ -109,15 +116,12 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
               ),
               onChanged: (value) => setState(() => _firstName = value),
               initialValue: widget.player?.firstName,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Veuillez spécifier un prénom';
-                }
-
-                return null;
-              },
+              validator: (value) => _validateName(value, 'prénom'),
             ),
+
             const SizedBox(height: 20.0),
+
+            // Le champ nom
             TextFormField(
               decoration: const InputDecoration(
                 label: Text('Nom'),
@@ -125,15 +129,12 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
               ),
               initialValue: widget.player?.lastName,
               onChanged: (value) => setState(() => _lastName = value),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Veuillez spécifier un nom';
-                }
-
-                return null;
-              },
+              validator: (value) => _validateName(value, 'nom'),
             ),
+
             const SizedBox(height: 20.0),
+
+            // Le champ classement
             TextFormField(
               decoration: const InputDecoration(
                 label: Text('Classement'),
@@ -159,10 +160,13 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
         ),
       ),
       actions: [
+        // Bouton d'annulation
         TextButton(
           onPressed: () => Navigator.pop(context),
           child: const Text('Annuler'),
         ),
+
+        // Bouton de confirmation
         ElevatedButton(
           onPressed: () async {
             // Si tous les champs du formulaire sont valides
@@ -183,14 +187,16 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
                 ranking: _ranking,
               );
 
-              if (widget.player == null) {
+              // On vérifie s'il faut modifier ou ajouter le joueur
+              if (widget.isPlayerSet) {
                 // TODO: Modifier le joueur
-              } else {
-                await playersDatabase.addPlayer(newPlayer);
+                return;
               }
+              
+              await playersDatabase.addPlayer(newPlayer);
             }
           },
-          child: Text(widget.player == null ? 'Ajouter' : 'Modifier'),
+          child: Text(widget.isPlayerSet ? 'Ajouter' : 'Modifier'),
         ),
       ],
     );

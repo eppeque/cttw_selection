@@ -14,26 +14,28 @@ class CTTWSelectionApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Utilisation de [AnimatedBuilder] afin de
+    // mettre à jour l'interface quand le thème change
     return AnimatedBuilder(
       animation: settingsController,
       builder: (context, _) {
         return MaterialApp(
-          title: 'CTTW Sélection',
+          title: 'CTTW Sélection', // Le titre de l'application
           home: PageManager(
             settingsController: settingsController,
           ),
           debugShowCheckedModeBanner: false,
           supportedLocales: const [
-            Locale('fr'), // French, no country code
+            Locale('fr'), // Français, pas de pays
           ],
           localizationsDelegates: const [
-            GlobalWidgetsLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate, // les widgets mixtes
+            GlobalMaterialLocalizations.delegate, // les widgets Material Design
+            GlobalCupertinoLocalizations.delegate, // les widgets Cupertino (Apple design)
           ],
-          theme: app_theme.lightTheme,
-          darkTheme: app_theme.darkTheme,
-          themeMode: settingsController.themeMode,
+          theme: app_theme.lightTheme, // Le thème clair
+          darkTheme: app_theme.darkTheme, // Le thème sombre
+          themeMode: settingsController.themeMode, // Le thème sélectionné
         );
       },
     );
