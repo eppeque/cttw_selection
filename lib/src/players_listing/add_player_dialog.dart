@@ -56,7 +56,7 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       // Le titre du pop-up
-      title: Text(widget.isPlayerSet ? 'Nouveau joueur' : 'Modifier le joueur'),
+      title: Text(widget.isPlayerSet ? 'Modifier le joueur' : 'Nouveau joueur'),
 
       // Le contenu avec le formulaire
       content: Form(
@@ -196,7 +196,7 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
               await playersDatabase.addPlayer(newPlayer);
             }
           },
-          child: Text(widget.isPlayerSet ? 'Ajouter' : 'Modifier'),
+          child: Text(widget.isPlayerSet ? 'Modifier' : 'Ajouter'),
         ),
       ],
     );
