@@ -22,12 +22,26 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
   final _formKey = GlobalKey<FormState>();
 
   // Les données fournies dans le formulaire
-  var _id = ''; // l'ID
-  var _index = ''; // L'index
-  var _affiliation = ''; // Le n° d'affiliation
-  var _firstName = ''; // Le prénom
-  var _lastName = ''; // Le nom
-  var _ranking = ''; // Le classement
+  String _id = ''; // l'ID
+  String _index = ''; // L'index
+  String _affiliation = ''; // Le n° d'affiliation
+  String _firstName = ''; // Le prénom
+  String _lastName = ''; // Le nom
+  String _ranking = ''; // Le classement
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.isPlayerSet) {
+      _id = widget.player!.id.toString();
+      _index = widget.player!.index.toString();
+      _affiliation = widget.player!.affiliation.toString();
+      _firstName = widget.player!.firstName;
+      _lastName = widget.player!.lastName;
+      _ranking = widget.player!.ranking;
+    }
+  }
 
   /// Valide ou non les données sous forme d'entier provenant d'un formulaire
   String? _validateIntValue(String? value, String fieldName) {
@@ -52,6 +66,20 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
     return null;
   }
 
+  String? _validateRanking(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Veuillez spécifier un classement';
+    }
+
+    final regex = RegExp(r'([B-E](0|2|4|6))|NC');
+
+    if (!regex.hasMatch(value)) {
+      return 'Format invalide';
+    }
+
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -67,14 +95,14 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
             // Le champ ID
             TextFormField(
               decoration: const InputDecoration(
-                label: Text('ID'),
+                label: Text('Code'),
                 border: OutlineInputBorder(),
               ),
-              initialValue: widget.player?.id.toString(),
+              initialValue: _id,
               onChanged: (value) => setState(() => _id = value),
               autofocus: true,
               keyboardType: TextInputType.number,
-              validator: (value) => _validateIntValue(value, 'ID'),
+              validator: (value) => _validateIntValue(value, 'code'),
             ),
 
             const SizedBox(height: 20.0),
@@ -85,7 +113,7 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
                 label: Text('Index'),
                 border: OutlineInputBorder(),
               ),
-              initialValue: widget.player?.index.toString(),
+              initialValue: _index,
               onChanged: (value) => setState(() => _index = value),
               readOnly: widget.isPlayerSet,
               keyboardType: TextInputType.number,
@@ -101,7 +129,7 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
                 border: OutlineInputBorder(),
               ),
               onChanged: (value) => setState(() => _affiliation = value),
-              initialValue: widget.player?.affiliation.toString(),
+              initialValue: _affiliation,
               keyboardType: TextInputType.number,
               validator: (value) => _validateIntValue(value, "n° d'affiliation"),
             ),
@@ -115,7 +143,7 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
                 border: OutlineInputBorder(),
               ),
               onChanged: (value) => setState(() => _firstName = value),
-              initialValue: widget.player?.firstName,
+              initialValue: _firstName,
               validator: (value) => _validateName(value, 'prénom'),
             ),
 
@@ -127,7 +155,7 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
                 label: Text('Nom'),
                 border: OutlineInputBorder(),
               ),
-              initialValue: widget.player?.lastName,
+              initialValue: _lastName,
               onChanged: (value) => setState(() => _lastName = value),
               validator: (value) => _validateName(value, 'nom'),
             ),
@@ -140,21 +168,9 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
                 label: Text('Classement'),
                 border: OutlineInputBorder(),
               ),
-              initialValue: widget.player?.ranking,
+              initialValue: _ranking,
               onChanged: (value) => setState(() => _ranking = value),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Veuillez spécifier un classement';
-                }
-
-                final regex = RegExp(r'([B-E](0|2|4|6))|NC');
-
-                if (!regex.hasMatch(value)) {
-                  return 'Format invalide';
-                }
-
-                return null;
-              },
+              validator: _validateRanking,
             ),
           ],
         ),
@@ -189,10 +205,14 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
 
               // On vérifie s'il faut modifier ou ajouter le joueur
               if (widget.isPlayerSet) {
-                // TODO: Modifier le joueur
+                await playersDatabase.updatePlayer(
+                  widget.player!.id,
+                  newPlayer,
+                );
+
                 return;
               }
-              
+
               await playersDatabase.addPlayer(newPlayer);
             }
           },

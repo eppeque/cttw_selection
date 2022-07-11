@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cttw_selection/src/players_listing/add_player_dialog.dart';
+import 'package:cttw_selection/src/players_listing/delete_player_dialog.dart';
 import 'package:cttw_selection/src/players_listing/player.dart';
 import 'package:flutter/material.dart';
 
@@ -31,7 +32,7 @@ class PlayersListingView extends StatelessWidget {
         }
 
         // On trie la liste des joueurs dans l'ordre chroissant des ids
-        snapshot.data!.docs.sort((a, b) => a.id.compareTo(b.id));
+        // snapshot.data!.docs.sort((a, b) => a.id.compareTo(b.id));
 
         // Affichage de la liste
         return ListView(
@@ -44,12 +45,19 @@ class PlayersListingView extends StatelessWidget {
                 '${player.firstName} ${player.lastName.toUpperCase()}',
               ),
               subtitle: Text(
-                  "N°d'affiliation : ${player.affiliation}\nIndex : ${player.index}"),
+                "N°d'affiliation : ${player.affiliation}\nIndex : ${player.index}",
+              ),
               trailing: Text(player.ranking),
               onTap: () {
                 showDialog(
                   context: context,
                   builder: (context) => AddPlayerDialog(player: player),
+                );
+              },
+              onLongPress: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => DeletePlayerDialog(player: player),
                 );
               },
             );

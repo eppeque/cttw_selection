@@ -4,7 +4,7 @@ import 'package:cttw_selection/src/players_listing/player.dart';
 /// Représente la base de données des joueurs.
 /// Utilisée pour la liste de force.
 class PlayersDatabase {
-  // L'instance de la base de données
+  /// L'instance de la base de données
   static final _db = FirebaseFirestore.instance;
 
   /// La collection des joueurs
@@ -15,48 +15,104 @@ class PlayersDatabase {
 
   /// Ajoute un joueur en base de données
   Future<void> addPlayer(Player player) async {
-    // On met à jour les ids si besoin
-    await _updateIds(player.id);
+    // Mise à jour des ids si besoin
+    await _updateIdsForCreation(player.id);
 
-    // On ajoute le nouveau joueur
-    await _playersCol
-        .doc(player.id.toString())
-        .set(player);
+    // Ajout du nouveau joueur
+    await _playersCol.doc(player.id.toString()).set(player);
 
-    // On met à jour les index après l'ajout
+    // Mise à jour des index après l'ajout
     await _updateIndex();
   }
 
   /// Met à jour un joueur dans la base de données
-  Future<void> updatePlayer(Player player) async {
-    // TODO: Mettre à jour un joueur
+  Future<void> updatePlayer(int oldId, Player newPlayer) async {
+    // Si l'ID n'a pas été modifié
+    if (oldId != newPlayer.id) {
+      // Suppression du joueur en base de données
+      // + mise à jour des ids
+      await removePlayer(oldId);
+
+      // Rajout du joueur en base de données
+      await addPlayer(newPlayer);
+    }
+
+    // Simple remplacement des données du joueur
+    await _playersCol.doc(oldId.toString()).set(newPlayer);
   }
 
   /// Supprime un joueur de la base de données sur base de l'ID de ce joueur.
-  Future<void> removePlayer() async {
-    // TODO: Supprimer un joueur
+  Future<void> removePlayer(int id) async {
+    // Mise à jour des ids si besoin avec remplacement du joueur à supprimer
+    await _updateIdsForDeletion(id);
+
+    // Mise à jour des index
+    await _updateIndex();
   }
 
   /// Met à jour les ids de tous les joueurs.
   /// Cette méthode est utile lorsque la liste des joueurs est modifiée.
   /// C'est pourquoi cette méthode n'est utilisée
   /// que lors de l'ajout et la suppression d'un joueur.
-  Future<void> _updateIds(int id) async {
+  Future<void> _updateIdsForCreation(int id) async {
     final players = await _playersCol.get();
+
+    if (id == players.size + 1) return;
 
     // On vérifie si l'ID existe déjà
     for (final player in players.docs) {
       // L'ID existe déjà ?
       if (player.id == id.toString()) {
-        // On augmente les IDS de 1 puis on ajoute notre joueur
-        for (var i = players.size; i >= int.parse(player.id); i--) {
+        // Augmentation des ids de 1 des joueurs suivants
+        for (var i = players.size; i >= id; i--) {
           final p = await _playersCol.doc(i.toString()).get();
 
-          await _playersCol.doc((i + 1).toString()).set(p.data()!);
+          // Le joueur avec le nouvel ID à stocker en base de données
+          final playerWithNewId = Player(
+            id: i + 1,
+            index: p.data()!.index,
+            affiliation: p.data()!.affiliation,
+            firstName: p.data()!.firstName,
+            lastName: p.data()!.lastName,
+            ranking: p.data()!.ranking,
+          );
+
+          await _playersCol.doc((i + 1).toString()).set(playerWithNewId);
         }
         break; // Sortie de la boucle et arrêt de la méthode
       }
     }
+  }
+
+  Future<void> _updateIdsForDeletion(int id) async {
+    // Récupération des joueurs
+    final players = await _playersCol.get();
+
+    // Suppression du joueur demandé
+    await _playersCol.doc(id.toString()).delete();
+
+    // Si le joueur à supprimer est le dernier joueur dans la liste,
+    // il n'est pas nécessaire de mettre à jour les ids
+    if (id == players.size) return;
+
+    // Parcours de la liste à partir du prochain joueur
+    for (var i = id + 1; i <= players.size; i++) {
+      final p = await _playersCol.doc(i.toString()).get();
+
+      // Le joueur avec le nouvel ID à stocker en base de données
+      final playerWithNewId = Player(
+        id: i - 1,
+        index: p.data()!.index,
+        affiliation: p.data()!.affiliation,
+        firstName: p.data()!.firstName,
+        lastName: p.data()!.lastName,
+        ranking: p.data()!.ranking,
+      );
+
+      await _playersCol.doc((i - 1).toString()).set(playerWithNewId);
+    }
+
+    await _playersCol.doc(players.size.toString()).delete();
   }
 
   /// Met à jour les index des joueurs
@@ -78,11 +134,9 @@ class PlayersDatabase {
       final playerRef = _playersCol.doc(i.toString());
 
       // Récupération du joueur
-      final player = await playerRef.get().then(
-        (value) {
-          return value.data()!;
-        }
-      );
+      final player = await playerRef.get().then((value) {
+        return value.data()!;
+      });
 
       // Si le classement du joueur parcouru est E6 ou NC
       if (player.ranking == 'E6' || player.ranking == 'NC') {
