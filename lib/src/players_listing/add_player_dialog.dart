@@ -23,7 +23,6 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
 
   // Les données fournies dans le formulaire
   String _id = ''; // l'ID
-  String _index = ''; // L'index
   String _affiliation = ''; // Le n° d'affiliation
   String _firstName = ''; // Le prénom
   String _lastName = ''; // Le nom
@@ -35,7 +34,6 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
 
     if (widget.isPlayerSet) {
       _id = widget.player!.id.toString();
-      _index = widget.player!.index.toString();
       _affiliation = widget.player!.affiliation.toString();
       _firstName = widget.player!.firstName;
       _lastName = widget.player!.lastName;
@@ -103,21 +101,6 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
               autofocus: true,
               keyboardType: TextInputType.number,
               validator: (value) => _validateIntValue(value, 'code'),
-            ),
-
-            const SizedBox(height: 20.0),
-
-            // Le champ index
-            TextFormField(
-              decoration: const InputDecoration(
-                label: Text('Index'),
-                border: OutlineInputBorder(),
-              ),
-              initialValue: _index,
-              onChanged: (value) => setState(() => _index = value),
-              readOnly: widget.isPlayerSet,
-              keyboardType: TextInputType.number,
-              validator: (value) => _validateIntValue(value, 'index'),
             ),
 
             const SizedBox(height: 20.0),
@@ -196,7 +179,9 @@ class _AddPlayerDialogState extends State<AddPlayerDialog> {
               // Création du joueur à ajouter ou modifier dans la base de données
               final newPlayer = Player(
                 id: int.parse(_id),
-                index: int.parse(_index),
+                // Si le joueur est créé, l'index sera calculé par l'algorithme de calcul des index
+                // Si le joueur est modifié, l'index ne sera pas calculé, c'est pourquoi il faut donner l'ancien index
+                index: widget.player?.id ?? 0,
                 affiliation: int.parse(_affiliation),
                 firstName: _firstName,
                 lastName: _lastName,

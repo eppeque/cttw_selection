@@ -44,7 +44,7 @@ class PlayersListingView extends StatelessWidget {
               title: Text(
                 '${player.firstName} ${player.lastName.toUpperCase()}',
               ),
-              subtitle: Text(
+              subtitle: SelectableText(
                 "N°d'affiliation : ${player.affiliation}\nIndex : ${player.index}",
               ),
               trailing: Text(player.ranking),
