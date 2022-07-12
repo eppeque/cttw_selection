@@ -21,7 +21,9 @@ class PlayersListingView extends StatelessWidget {
       builder: (context, snapshot) {
         // Une erreur s'est produite
         if (snapshot.hasError) {
-          return const Text("Une erreur s'est produite :/");
+          return const Center(
+            child: Text("Une erreur s'est produite :/"),
+          );
         }
 
         // Chargement en cours...
@@ -36,8 +38,9 @@ class PlayersListingView extends StatelessWidget {
 
         // Affichage de la liste
         return ListView(
-          children: snapshot.data!.docs.map((p) {
-            final player = p.data();
+          children: snapshot.data!.docs.map((element) {
+            final player = element.data();
+            
             // Pour chaque joueur, on affiche une ligne avec les données du joueur
             return ListTile(
               leading: Text(player.id.toString()),

@@ -1,5 +1,6 @@
 import 'package:animations/animations.dart';
 import 'package:cttw_selection/src/players_listing/add_player_dialog.dart';
+import 'package:cttw_selection/src/players_listing/player_search_view.dart';
 import 'package:cttw_selection/src/players_listing/players_listing_view.dart';
 import 'package:cttw_selection/src/settings/settings_controller.dart';
 import 'package:cttw_selection/src/settings/settings_view.dart';
@@ -11,7 +12,7 @@ import 'package:flutter/material.dart';
 /// - la barre d'application supérieure -> [AppBar]
 /// - le rail de navigation à gauche -> [NavigationRail]
 /// - un bouton d'action flottant -> [FloatingActionButton]
-/// 
+///
 /// L'intérieur du cadre est la page sélectionnée depuis le rail de navigation.
 class PageManager extends StatefulWidget {
   final SettingsController settingsController;
@@ -39,6 +40,18 @@ class _PageManagerState extends State<PageManager> {
       // La barre d'application
       appBar: AppBar(
         title: const Text('CTTW Sélection'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              showSearch(
+                context: context,
+                delegate: PlayerSearchView(),
+              );
+            },
+            tooltip: 'Rechercher un joueur',
+            icon: const Icon(Icons.search),
+          )
+        ],
       ),
       body: Row(
         children: [
@@ -81,7 +94,7 @@ class _PageManagerState extends State<PageManager> {
           ),
         ],
       ),
-      
+
       // Le bouton d'action flottant affichant un pop-up afin
       // d'ajouter un nouveau joueur.
       // Ce bouton n'est affiché que si la première page est affichée
