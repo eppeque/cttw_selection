@@ -13,7 +13,8 @@ class SettingsController with ChangeNotifier {
   /// Les services permettant la communcation avec la mémoire de la plateforme
   final SettingsService _settingsService;
 
-  /// Crée le gestionnaire des paramètres de l'application. Cette classe devrait être instanciée comme suit :
+  /// Crée le gestionnaire des paramètres de l'application.
+  /// Cette classe devrait être instanciée comme suit :
   /// 
   /// ```dart
   /// final settingsController = SettingsController(SettingsService());

@@ -38,7 +38,7 @@ class Player {
     required this.ranking,
   });
 
-  /// Crée un joueur sur base de données tirées de la base de données Firestore
+  /// Crée un joueur depuis les données tirées de la base de données Firestore
   factory Player.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> snapshot,
     SnapshotOptions? options,

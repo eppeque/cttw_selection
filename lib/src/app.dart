@@ -29,7 +29,7 @@ class CTTWSelectionApp extends StatelessWidget {
             Locale('fr'), // Français, pas de pays
           ],
           localizationsDelegates: const [
-            GlobalWidgetsLocalizations.delegate, // les widgets mixtes
+            GlobalWidgetsLocalizations.delegate, // les widgets généraux
             GlobalMaterialLocalizations.delegate, // les widgets Material Design
             GlobalCupertinoLocalizations.delegate, // les widgets Cupertino (Apple design)
           ],

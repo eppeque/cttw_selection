@@ -10,8 +10,9 @@ class DeletePlayerDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title:
-          Text('Supprimer le joueur "${player.firstName} ${player.lastName}"'),
+      title: Text(
+        'Supprimer le joueur "${player.firstName} ${player.lastName}"',
+      ),
       content: Text(
         'Êtes-vous sûr de vouloir supprimer le joueur "${player.firstName} ${player.lastName}" ?',
       ),

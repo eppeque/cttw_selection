@@ -2,6 +2,8 @@ import 'package:animations/animations.dart';
 import 'package:cttw_selection/src/players_listing/add_player_dialog.dart';
 import 'package:cttw_selection/src/players_listing/player_search_view.dart';
 import 'package:cttw_selection/src/players_listing/players_listing_view.dart';
+import 'package:cttw_selection/src/selection/selection_view.dart';
+import 'package:cttw_selection/src/settings/app_theme.dart' as app_theme;
 import 'package:cttw_selection/src/settings/settings_controller.dart';
 import 'package:cttw_selection/src/settings/settings_view.dart';
 import 'package:flutter/material.dart';
@@ -26,13 +28,47 @@ class PageManager extends StatefulWidget {
   State<PageManager> createState() => _PageManagerState();
 }
 
-class _PageManagerState extends State<PageManager> {
+class _PageManagerState extends State<PageManager>
+    with SingleTickerProviderStateMixin {
+    
+  // Les onglets à afficher dans la barre d'application
+  static const tabs = [
+    Tab(text: 'Équipe 1'),
+    Tab(text: 'Équipe 2'),
+    Tab(text: 'Équipe 3'),
+    Tab(text: 'Équipe 4'),
+    Tab(text: 'Équipe 5'),
+    Tab(text: 'Équipe 6'),
+  ];
+
+  // Le contrôleur utilisé dans la barre d'application et
+  // sur la page contenant les pages des onglets
+  late TabController _tabController;
+
+  // L'index des pages dans le rail de navigation
   var _selectedIndex = 0;
 
   @override
+  void initState() {
+    super.initState();
+
+    // Initialisation du contrôleur
+    _tabController = TabController(length: tabs.length, vsync: this);
+  }
+
+  // Destruction du contrôleur afin de libérer certaines ressources
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Les pages pouvant êtres choisies dans le rail de navigation
     final pages = [
       const PlayersListingView(),
+      SelectionView(controller: _tabController),
       SettingsView(settingsController: widget.settingsController),
     ];
 
@@ -41,6 +77,7 @@ class _PageManagerState extends State<PageManager> {
       appBar: AppBar(
         title: const Text('CTTW Sélection'),
         actions: [
+          // Bouton de recherche de joueur
           IconButton(
             onPressed: () {
               showSearch(
@@ -52,6 +89,17 @@ class _PageManagerState extends State<PageManager> {
             icon: const Icon(Icons.search),
           )
         ],
+
+        // La barre montrant les différents onglets uniquement
+        // sur la deuxième page (page de sélection)
+        bottom: _selectedIndex == 1
+            ? TabBar(
+                tabs: tabs,
+                controller: _tabController,
+                indicatorColor: app_theme.appColor,
+                labelColor: Colors.black,
+              )
+            : null,
       ),
       body: Row(
         children: [
@@ -63,10 +111,10 @@ class _PageManagerState extends State<PageManager> {
                 selectedIcon: Icon(Icons.people_alt),
                 label: Text('Liste de force'),
               ),
-              // NavigationRailDestination(
-              //   icon: Icon(Icons.format_list_bulleted),
-              //   label: Text('Sélection'),
-              // ),
+              NavigationRailDestination(
+                icon: Icon(Icons.format_list_bulleted),
+                label: Text('Sélection'),
+              ),
               NavigationRailDestination(
                 icon: Icon(Icons.settings_outlined),
                 selectedIcon: Icon(Icons.settings),
@@ -96,7 +144,7 @@ class _PageManagerState extends State<PageManager> {
       ),
 
       // Le bouton d'action flottant affichant un pop-up afin
-      // d'ajouter un nouveau joueur.
+      // d'ajouter ou modifier un joueur.
       // Ce bouton n'est affiché que si la première page est affichée
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(

@@ -2,7 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cttw_selection/src/players_listing/player.dart';
 import 'package:flutter/material.dart';
 
+/// L'interface de recherche d'un joueur
 class PlayerSearchView extends SearchDelegate {
+
+  /// Dessine les widgets à mettre à la fin de [AppBar]
+  /// Dans cette app, c'est basiquement un bouton qui
+  /// permet de réinitialiser la requête
   @override
   List<Widget>? buildActions(BuildContext context) {
     return [
@@ -14,6 +19,8 @@ class PlayerSearchView extends SearchDelegate {
     ];
   }
 
+  /// Dessine le widget à mettre au début de [AppBar]
+  /// Dans cette app, c'est un bouton qui permet de fermer la page de recherche
   @override
   Widget? buildLeading(BuildContext context) {
     return IconButton(
@@ -23,11 +30,14 @@ class PlayerSearchView extends SearchDelegate {
     );
   }
 
+  /// Dessine les résultats de la recherche
   @override
   Widget buildResults(BuildContext context) {
     return buildSuggestions(context);
   }
 
+  /// Dessine les suggesitions au fur et à mesure
+  /// que l'utilisateur tape sa requête
   @override
   Widget buildSuggestions(BuildContext context) {
     // La référence de la collection contenant les joueurs
@@ -53,7 +63,8 @@ class PlayerSearchView extends SearchDelegate {
           );
         }
 
-        // Filtrage des résultats
+        // Filtrage des résultats.
+        // C'est ici que la recherche s'effectue.
         final result = snapshot.data!.docs.where((element) {
           final player = element.data();
 
@@ -62,6 +73,8 @@ class PlayerSearchView extends SearchDelegate {
               .contains(query.toLowerCase());
         }).toList();
 
+        // Si la liste des résultats est vide,
+        // affichage d'un message informant l'utilisateur
         if (result.isEmpty) {
           return const Center(
             child: Text(
