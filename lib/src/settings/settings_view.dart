@@ -1,5 +1,6 @@
 import 'package:cttw_selection/src/settings/settings_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 /// L'interface des paramètres de l'application
 class SettingsView extends StatelessWidget {
@@ -44,7 +45,7 @@ class SettingsView extends StatelessWidget {
         // les mentions légales de l'application
         const AboutListTile(
           icon: Icon(Icons.info_outline),
-          applicationIcon: Icon(Icons.sports_tennis_outlined),
+          applicationIcon: Icon(FontAwesomeIcons.tableTennisPaddleBall),
           applicationLegalese: 'Cette application est développée par Quentin Eppe.',
           applicationVersion: '1.0.0',
         ),

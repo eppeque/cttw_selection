@@ -16,6 +16,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
+  font_awesome_flutter: ^10.1.0
   shared_preferences: ^2.0.15
 
 dev_dependencies:
