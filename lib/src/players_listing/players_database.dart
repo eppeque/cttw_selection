@@ -8,7 +8,7 @@ class PlayersDatabase {
   static final _db = FirebaseFirestore.instance;
 
   /// La collection des joueurs
-  final _playersCol = _db.collection('players').withConverter(
+  static final _playersCol = _db.collection('players').withConverter(
         fromFirestore: Player.fromFirestore,
         toFirestore: (Player player, _) => player.toFirestore(),
       );

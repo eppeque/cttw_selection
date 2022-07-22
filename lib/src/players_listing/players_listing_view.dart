@@ -33,9 +33,6 @@ class PlayersListingView extends StatelessWidget {
           );
         }
 
-        // On trie la liste des joueurs dans l'ordre chroissant des ids
-        // snapshot.data!.docs.sort((a, b) => a.id.compareTo(b.id));
-
         // Affichage de la liste
         return ListView(
           children: snapshot.data!.docs.map((element) {

@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cttw_selection/src/players_listing/player.dart';
+import 'package:cttw_selection/src/selection/players_table.dart';
 import 'package:cttw_selection/src/selection/team.dart';
 import 'package:cttw_selection/src/page_manager.dart';
+import 'package:cttw_selection/src/selection/teams_database.dart';
 import 'package:flutter/material.dart';
 
-// TODO: Ordonner le code (classe TeamDatabase ?) + Commenter cette classe + implémenter changement joueur + couleur quand changement
+// TODO: Implémenter changement joueur + couleur quand changement
 
 /// Interface contenant les tableaux de sélection des joueurs pour les équipes.
 /// Ce widget réagit dynamiquement aux onglets affichés sur [PageManager].
@@ -20,30 +21,11 @@ class SelectionView extends StatefulWidget {
 }
 
 class _SelectionViewState extends State<SelectionView> {
-  Future<List<Player>> _getPlayers(Team team) async {
-    final result = <Player>[];
+  /// Objet représentant la base de données des équipes
+  /// afin de pouvoir modifier les données à l'intérieur
+  final teamsDatabase = TeamsDatabase();
 
-    result.add(await _getPlayer(team.player1));
-    result.add(await _getPlayer(team.player2));
-    result.add(await _getPlayer(team.player3));
-    result.add(await _getPlayer(team.player4));
-
-    return result;
-  }
-
-  Future<Player> _getPlayer(int playerId) async {
-    final ref = await FirebaseFirestore.instance
-        .collection('players')
-        .withConverter(
-          fromFirestore: Player.fromFirestore,
-          toFirestore: (Player player, _) => player.toFirestore(),
-        )
-        .doc(playerId.toString())
-        .get();
-
-    return ref.data()!;
-  }
-
+  /// Donne le nom du jour selon sa position dans la semaine
   String _getWeekdayName(int weekdayPos) {
     switch (weekdayPos) {
       case 1:
@@ -63,9 +45,47 @@ class _SelectionViewState extends State<SelectionView> {
     }
   }
 
+  /// Convertit une date en une chaîne de caractères lisisble
   String _dateTimeToString(DateTime dateTime) {
+    // Les minutes s'affichent avec un seul zéro par défaut.
+    // On modifie ce comportement par défaut ici.
     final minute = dateTime.minute == 0 ? '00' : dateTime.minute.toString();
     return '${_getWeekdayName(dateTime.weekday)} ${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}h$minute';
+  }
+
+  /// Affiche à l'utilisateur la sélection d'une date et d'une heure et met à jour la base de données
+  Future<void> _setDateTime(String teamId) async {
+    // Date et heure actuelles
+    final now = DateTime.now();
+
+    // Affiche à l'utilisateur la sélection d'une date
+    final date = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: now,
+      lastDate: now.add(
+        const Duration(days: 365),
+      ),
+    );
+
+    // Si aucune date n'a été encodée, on abandonne
+    if (date == null) return;
+
+    // Affiche à l'utilisateur la sélection d'une heure
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    // Si aucune heure n'a été encodée, on abandonne
+    if (time == null) return;
+
+    // Création de l'objet date/heure
+    final dateTime =
+        DateTime(date.year, date.month, date.day, time.hour, time.minute);
+
+    // Mise à jour de la base de données
+    await teamsDatabase.updateDateTime(teamId, dateTime);
   }
 
   @override
@@ -79,192 +99,80 @@ class _SelectionViewState extends State<SelectionView> {
     // elle rafraîchit l'interface à chaque changement d'onglet et permet
     // d'avoir une seule et même interface
     return AnimatedBuilder(
+      // Le contrôleur d'onglets
       animation: widget.controller,
       builder: (context, _) {
         // Le document contenant les données de l'équipe sélectionnée
-        final doc = FirebaseFirestore.instance
-            .collection('teams')
-            .withConverter(
-              fromFirestore: Team.fromFirestore,
-              toFirestore: (Team team, _) => team.toFirestore(),
-            )
+        final doc = teamsDatabase.teamsCol
             .doc((widget.controller.index + 1).toString());
 
-        // Récupère et affiche le tableau de sélection
+        // Récupère et affiche la page d'une équipe
         return StreamBuilder<DocumentSnapshot<Team>>(
           stream: doc.snapshots(),
           builder: (context, teamSnapshot) {
+            // Une erreur s'est produite ?
             if (teamSnapshot.hasError) {
               return const Center(
                 child: Text("Une erreur s'est produite :/"),
               );
             }
 
+            // Chargement...
             if (teamSnapshot.connectionState == ConnectionState.waiting) {
               return const Center(
                 child: CircularProgressIndicator(),
               );
             }
 
+            // Récupération de l'objet représentant l'équipe sélectionnée
             final team = teamSnapshot.data!.data()!;
+
+            // Contôleur de modification de texte pour la saisie de l'adversaire.
+            // Ce contrôleur est nécessaire pour préremplir le champ avec l'adversire précédemment sélectionné.
             final opponentController =
                 TextEditingController(text: team.opponent);
 
-            return FutureBuilder<List<Player>>(
-              future: _getPlayers(team),
-              builder: (context, playerSnapshot) {
-                if (playerSnapshot.hasError) {
-                  return const Center(
-                    child: Text("Une erreur s'est produite :/"),
-                  );
-                }
-
-                if (playerSnapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-
-                final rows = <TableRow>[];
-
-                rows.add(
-                  const TableRow(
-                    children: [
-                      Text(
-                        'Code',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Nom et prénom',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Classement',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Index',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _dateTimeToString(team.dateTime),
+                  style: const TextStyle(fontSize: 28.0),
+                ),
+                const SizedBox(height: 20.0),
+                ElevatedButton(
+                  onPressed: () async =>
+                      await _setDateTime(teamSnapshot.data!.id),
+                  child: const Text("Changer la date et l'heure"),
+                ),
+                const SizedBox(height: 20.0),
+                Text(
+                  team.opponent,
+                  style: const TextStyle(fontSize: 24.0),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8.0,
+                    horizontal: 48.0,
                   ),
-                );
-
-                rows.addAll(playerSnapshot.data!.map(
-                  (player) {
-                    return TableRow(
-                      children: [
-                        Text(
-                          player.id.toString(),
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(
-                          '${player.firstName} ${player.lastName}'
-                              .toUpperCase(),
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(
-                          player.ranking,
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(
-                          player.index.toString(),
-                          textAlign: TextAlign.center,
-                        )
-                      ],
-                    );
-                  },
-                ).toList());
-
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      _dateTimeToString(team.dateTime),
-                      style: const TextStyle(fontSize: 28.0),
+                  child: TextField(
+                    decoration: const InputDecoration(
+                      label: Text('Adversaire'),
                     ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        final now = DateTime.now();
-                        final date = await showDatePicker(
-                          context: context,
-                          initialDate: now,
-                          firstDate: now,
-                          lastDate: now.add(
-                            const Duration(days: 365),
-                          ),
-                        );
-
-                        if (date == null) return;
-
-                        final time = await showTimePicker(
-                          context: context,
-                          initialTime: TimeOfDay.now(),
-                        );
-
-                        if (time == null) return;
-
-                        final dateTime = DateTime(date.year, date.month,
-                            date.day, time.hour, time.minute);
-
-                        await FirebaseFirestore.instance
-                            .collection('teams')
-                            .doc(teamSnapshot.data!.id)
-                            .update(
-                          {'dateTime': dateTime.millisecondsSinceEpoch},
-                        );
-                      },
-                      child: const Text("Changer la date et l'heure"),
-                    ),
-                    Text(
-                      team.opponent,
-                      style: const TextStyle(fontSize: 24.0),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 8.0, horizontal: 48.0),
-                      child: TextField(
-                        decoration: const InputDecoration(
-                          label: Text('Adversaire'),
-                        ),
-                        controller: opponentController,
-                        onSubmitted: (value) async {
-                          final ref = FirebaseFirestore.instance
-                              .collection('teams')
-                              .doc(teamSnapshot.data!.id);
-
-                          await ref.update({'opponent': value});
-                        },
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Table(
-                        border: TableBorder.all(),
-                        defaultVerticalAlignment:
-                            TableCellVerticalAlignment.middle,
-                        children: rows,
-                      ),
-                    ),
-                  ],
-                );
-              },
+                    controller: opponentController,
+                    onSubmitted: (value) async {
+                      await teamsDatabase.updateOpponent(
+                        teamSnapshot.data!.id,
+                        value,
+                      );
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: PlayersTable(database: teamsDatabase, team: team),
+                ),
+              ],
             );
           },
         );
