@@ -135,32 +135,42 @@ class _SelectionViewState extends State<SelectionView> {
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Texte affichant la date et l'heure de la rencontre
                 Text(
                   _dateTimeToString(team.dateTime),
                   style: const TextStyle(fontSize: 28.0),
                 ),
+
                 const SizedBox(height: 20.0),
+
+                // Bouton pour modifier la date et l'heure
                 ElevatedButton(
                   onPressed: () async =>
                       await _setDateTime(teamSnapshot.data!.id),
                   child: const Text("Changer la date et l'heure"),
                 ),
+
                 const SizedBox(height: 20.0),
+
+                // Texte affichant l'adversaire
                 Text(
                   team.opponent,
                   style: const TextStyle(fontSize: 24.0),
                 ),
+
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     vertical: 8.0,
                     horizontal: 48.0,
                   ),
+                  // Champ de texte permettant de modifier l'adversaire
                   child: TextField(
                     decoration: const InputDecoration(
                       label: Text('Adversaire'),
                     ),
                     controller: opponentController,
                     onSubmitted: (value) async {
+                      // Mise à jour de la base de données
                       await teamsDatabase.updateOpponent(
                         teamSnapshot.data!.id,
                         value,
@@ -170,6 +180,7 @@ class _SelectionViewState extends State<SelectionView> {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
+                  // Affichage du tableau des joueurs sléectionnés
                   child: PlayersTable(database: teamsDatabase, team: team),
                 ),
               ],

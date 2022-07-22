@@ -8,10 +8,16 @@ class PlayersDatabase {
   static final _db = FirebaseFirestore.instance;
 
   /// La collection des joueurs
-  static final _playersCol = _db.collection('players').withConverter(
+  final _playersCol = _db.collection('players').withConverter(
         fromFirestore: Player.fromFirestore,
         toFirestore: (Player player, _) => player.toFirestore(),
       );
+  
+  /// Récupère un joueur sur base de son ID
+  Future<Player> getPlayer(int playerId) async {
+    final player = await  _playersCol.doc(playerId.toString()).get();
+    return player.data()!;
+  }
 
   /// Ajoute un joueur en base de données
   Future<void> addPlayer(Player player) async {
