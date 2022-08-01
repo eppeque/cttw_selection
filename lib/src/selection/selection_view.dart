@@ -132,22 +132,28 @@ class _SelectionViewState extends State<SelectionView> {
             final opponentController =
                 TextEditingController(text: team.opponent);
 
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            return ListView(
               children: [
                 // Texte affichant la date et l'heure de la rencontre
                 Text(
                   _dateTimeToString(team.dateTime),
                   style: const TextStyle(fontSize: 28.0),
+                  textAlign: TextAlign.center,
                 ),
 
                 const SizedBox(height: 20.0),
 
                 // Bouton pour modifier la date et l'heure
-                ElevatedButton(
-                  onPressed: () async =>
-                      await _setDateTime(teamSnapshot.data!.id),
-                  child: const Text("Changer la date et l'heure"),
+                Stack(
+                  children: [
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: () async =>
+                            await _setDateTime(teamSnapshot.data!.id),
+                        child: const Text("Changer la date et l'heure"),
+                      ),
+                    ),
+                  ],
                 ),
 
                 const SizedBox(height: 20.0),
@@ -156,6 +162,7 @@ class _SelectionViewState extends State<SelectionView> {
                 Text(
                   team.opponent,
                   style: const TextStyle(fontSize: 24.0),
+                  textAlign: TextAlign.center,
                 ),
 
                 Padding(
@@ -178,6 +185,7 @@ class _SelectionViewState extends State<SelectionView> {
                     },
                   ),
                 ),
+
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   // Affichage du tableau des joueurs sléectionnés
